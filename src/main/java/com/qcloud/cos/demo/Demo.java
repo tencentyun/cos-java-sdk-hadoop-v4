@@ -29,18 +29,15 @@ public class Demo {
 		
 		// 设置用户属性, 包括appid, secretId和SecretKey
 		// 这些属性可以通过cos控制台获取(https://console.qcloud.com/cos)
-		// int appId = 10022105;
-		// String secretId = "AKIDGFf8r88nYtFdUilQVL1STwDNrrTngcom";
-		// String secretKey = "yM3H3xSREuk96vmBrwh8UadruA5gWhrc";
+
 		
-		int appId = 260000;
-		String secretId = "AKIDlPtKdlhXAkBUdbmQ5Zt23wfEdrjSZPce";
-		String secretKey = "TmvujR2TkrnpiRzZzFKFzY0IUWO5g9Sa";
+		int appId = 1251001000;
+		String secretId = "xxxxxxxxx";
+		String secretKey = "xxxxxxxxxxxxxxxxxxx";
 		// 初始化cosClient
 		COSClient cosClient = new COSClient(appId, secretId, secretKey);
 		// 设置要操作的bucket
-		// String bucketName = "rabbitliubucket";
-		String bucketName = "rabbitliubucket";
+		String bucketName = "mytest";
 		
 		ListFolderRequest listFolderRequest = new ListFolderRequest(bucketName, "/");
 		String listFolderRet = cosClient.listFolder(listFolderRequest);

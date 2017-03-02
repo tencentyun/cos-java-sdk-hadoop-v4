@@ -27,42 +27,33 @@ public class UploadSliceFileRequest extends UploadFileRequest {
         super(bucketName, cosPath, contentBuffer);
     }
 
-	public int getSliceSize() {
-		return sliceSize;
-	}
+    public int getSliceSize() {
+        return sliceSize;
+    }
 
-	public void setSliceSize(int sliceSize) {
-		this.sliceSize = sliceSize;
-	}
+    public void setSliceSize(int sliceSize) {
+        this.sliceSize = sliceSize;
+    }
 
     @Override
     public void check_param() throws ParamException {
         super.check_param();
         CommonParamCheckUtils.AssertLegalSliceSize(this.sliceSize);
-        if (this.isUploadFromBuffer() && this.enableSavePoint) {
-            throw new ParamException("uploadFromBuffer not support save point");
-        }
     }
 
-	@Override
-	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		sb.append(super.toString());
-		sb.append(", sliceSize:").append(this.sliceSize);
-		sb.append(", taskNum:").append(String.valueOf(this.taskNum));
-		sb.append(", enableShaDigest:");
-		if (enableShaDigest) {
-			sb.append("1");
-		} else {
-			sb.append("0");
-		}
-		sb.append(", enableSavePoint:");
-		if (enableSavePoint) {
-			sb.append("1");
-		} else {
-			sb.append("0");
-		}
-		return sb.toString();
-	}
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(super.toString());
+        sb.append(", sliceSize:").append(this.sliceSize);
+        sb.append(", taskNum:").append(String.valueOf(this.taskNum));
+        sb.append(", enableShaDigest:");
+        if (enableShaDigest) {
+            sb.append("1");
+        } else {
+            sb.append("0");
+        }
+        return sb.toString();
+    }
 
 }

@@ -12,9 +12,9 @@ import com.qcloud.cos.meta.FileAuthority;
  *
  */
 public class UpdateFileRequest extends AbstractBaseRequest {
-	// 用户更新标识，更新bizAttr是0x01, 更新authority0x80, 更新custom_httpheader是0x40
-	// 更新多个属性是这些这些值取或
-	private int updatFlag = 0;
+    // 用户更新标识，更新bizAttr是0x01, 更新authority0x80, 更新custom_httpheader是0x40
+    // 更新多个属性是这些这些值取或
+    private int updatFlag = 0;
 
     // biz_attr属性
     private String bizAttr = "";
@@ -35,53 +35,53 @@ public class UpdateFileRequest extends AbstractBaseRequest {
     // 自定义http头, key为x-cos-meta-开头, value为字符串
     private Map<String, String> xCosMetaHeaders = new HashMap<>();
 
-	public UpdateFileRequest(String bucketName, String cosPath) {
-		super(bucketName, cosPath);
-	}
-	
-	public int getUpdateFlag() {
-		return updatFlag;
-	}
+    public UpdateFileRequest(String bucketName, String cosPath) {
+        super(bucketName, cosPath);
+    }
 
-	public String getBizAttr() {
-		return bizAttr;
-	}
+    public int getUpdateFlag() {
+        return updatFlag;
+    }
 
-	public void setBizAttr(String bizAttr) {
-		this.bizAttr = bizAttr;
-		this.updatFlag |= 0x01;
-	}
+    public String getBizAttr() {
+        return bizAttr;
+    }
 
-	public FileAuthority getAuthority() {
-		return authority;
-	}
+    public void setBizAttr(String bizAttr) {
+        this.bizAttr = bizAttr;
+        this.updatFlag |= 0x01;
+    }
 
-	public void setAuthority(FileAuthority authority) {
-		this.authority = authority;
-		this.updatFlag |= 0x80;
-	}
+    public FileAuthority getAuthority() {
+        return authority;
+    }
 
-	public Map<String, String> getCustomHeaders() {
-		return customHeaders;
-	}
+    public void setAuthority(FileAuthority authority) {
+        this.authority = authority;
+        this.updatFlag |= 0x80;
+    }
 
-	public void setCacheControl(String cacheControl) {
-		this.cacheControl = cacheControl;
-		this.updatFlag |= 0x40;
-		this.customHeaders.put("Cache-Control", cacheControl);
-	}
+    public Map<String, String> getCustomHeaders() {
+        return customHeaders;
+    }
 
-	public void setContentType(String contentType) {
-		this.contentType = contentType;
-		this.updatFlag |= 0x40;
-		this.customHeaders.put("Content-Type", contentType);
-	}
+    public void setCacheControl(String cacheControl) {
+        this.cacheControl = cacheControl;
+        this.updatFlag |= 0x40;
+        this.customHeaders.put("Cache-Control", cacheControl);
+    }
 
-	public void setContentDisposition(String contentDisposition) {
-		this.contentDisposition = contentDisposition;
-		this.updatFlag |= 0x40;
-		this.customHeaders.put("Content-Disposition", contentDisposition);
-	}
+    public void setContentType(String contentType) {
+        this.contentType = contentType;
+        this.updatFlag |= 0x40;
+        this.customHeaders.put("Content-Type", contentType);
+    }
+
+    public void setContentDisposition(String contentDisposition) {
+        this.contentDisposition = contentDisposition;
+        this.updatFlag |= 0x40;
+        this.customHeaders.put("Content-Disposition", contentDisposition);
+    }
 
     public void setContentLanguage(String contentLanguage) {
         this.contentLanguage = contentLanguage;

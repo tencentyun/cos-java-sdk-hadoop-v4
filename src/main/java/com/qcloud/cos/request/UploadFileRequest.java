@@ -15,13 +15,10 @@ public class UploadFileRequest extends AbstractBaseRequest {
     // 上传文件的属性信息
     private String bizAttr;
 
-	private byte[] contentBufer = null;
-	private boolean uploadFromBuffer = false;
+    private byte[] contentBufer = null;
+    private boolean uploadFromBuffer = false;
 
     private InsertOnly insertOnly = InsertOnly.NO_OVER_WRITE;
-
-    // 开启断点请求，默认开启
-    protected boolean enableSavePoint = true;
 
     // 开启sha摘要
     protected boolean enableShaDigest = false;
@@ -29,62 +26,62 @@ public class UploadFileRequest extends AbstractBaseRequest {
     // 并行任务数
     protected int taskNum = DEFAULT_TASK_NUM;
 
-	public UploadFileRequest(String bucketName, String cosPath, String localPath, String bizAttr) {
-		super(bucketName, cosPath);
-		this.localPath = localPath;
-		this.bizAttr = bizAttr;
-		this.contentBufer = null;
-		this.uploadFromBuffer = false;
-	}
+    public UploadFileRequest(String bucketName, String cosPath, String localPath, String bizAttr) {
+        super(bucketName, cosPath);
+        this.localPath = localPath;
+        this.bizAttr = bizAttr;
+        this.contentBufer = null;
+        this.uploadFromBuffer = false;
+    }
 
-	public UploadFileRequest(String bucketName, String cosPath, String localPath) {
-		this(bucketName, cosPath, localPath, "");
-	}
+    public UploadFileRequest(String bucketName, String cosPath, String localPath) {
+        this(bucketName, cosPath, localPath, "");
+    }
 
-	public UploadFileRequest(String bucketName, String cosPath, byte[] contentBuffer) {
-		super(bucketName, cosPath);
-		this.contentBufer = contentBuffer;
-		this.uploadFromBuffer = true;
-		this.bizAttr = "";
-	}
+    public UploadFileRequest(String bucketName, String cosPath, byte[] contentBuffer) {
+        super(bucketName, cosPath);
+        this.contentBufer = contentBuffer;
+        this.uploadFromBuffer = true;
+        this.bizAttr = "";
+    }
 
-	public String getBizAttr() {
-		return bizAttr;
-	}
+    public String getBizAttr() {
+        return bizAttr;
+    }
 
-	public void setBizAttr(String bizAttr) {
-		this.bizAttr = bizAttr;
-	}
+    public void setBizAttr(String bizAttr) {
+        this.bizAttr = bizAttr;
+    }
 
-	public String getLocalPath() {
-		return localPath;
-	}
+    public String getLocalPath() {
+        return localPath;
+    }
 
     public void setLocalPath(String localPath) {
         this.localPath = localPath;
         this.uploadFromBuffer = false;
     }
 
-	public InsertOnly getInsertOnly() {
-		return insertOnly;
-	}
+    public InsertOnly getInsertOnly() {
+        return insertOnly;
+    }
 
-	public void setInsertOnly(InsertOnly insertOnly) {
-		this.insertOnly = insertOnly;
-	}
+    public void setInsertOnly(InsertOnly insertOnly) {
+        this.insertOnly = insertOnly;
+    }
 
-	public byte[] getContentBufer() {
-		return contentBufer;
-	}
+    public byte[] getContentBufer() {
+        return contentBufer;
+    }
 
     public void setContentBufer(byte[] contentBufer) {
         this.contentBufer = contentBufer;
         this.uploadFromBuffer = true;
     }
 
-	public boolean isUploadFromBuffer() {
-		return uploadFromBuffer;
-	}
+    public boolean isUploadFromBuffer() {
+        return uploadFromBuffer;
+    }
 
 
     @Override
@@ -116,26 +113,19 @@ public class UploadFileRequest extends AbstractBaseRequest {
         this.enableShaDigest = enableShaDigest;
     }
 
-    public boolean isEnableSavePoint() {
-        return enableSavePoint;
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(super.toString());
+        sb.append(", local_path:").append(getMemberStringValue(this.localPath));
+        sb.append(", bizAttr:").append(getMemberStringValue(this.bizAttr));
+        sb.append(", uploadFromBuffer:").append(this.uploadFromBuffer);
+        sb.append(", insertonly:");
+        if (this.insertOnly == null) {
+            sb.append("null");
+        } else {
+            sb.append(this.insertOnly.ordinal());
+        }
+        return sb.toString();
     }
-
-    public void setEnableSavePoint(boolean enableSavePoint) {
-        this.enableSavePoint = enableSavePoint;
-    }
-
-	@Override
-	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		sb.append(super.toString());
-		sb.append(", local_path:").append(getMemberStringValue(this.localPath));
-		sb.append(", bizAttr:").append(getMemberStringValue(this.bizAttr));
-		sb.append(", uploadFromBuffer:").append(this.uploadFromBuffer);
-		if (this.insertOnly == null) {
-			sb.append("null");
-		} else {
-			sb.append(this.insertOnly.ordinal());
-		}
-		return sb.toString();
-	}
 }

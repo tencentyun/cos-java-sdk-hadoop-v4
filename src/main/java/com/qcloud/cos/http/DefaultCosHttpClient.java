@@ -45,9 +45,7 @@ public class DefaultCosHttpClient extends AbstractCosHttpClient {
     // 获得异常发生时的返回信息
     private String getExceptionMsg(HttpRequest httpRequest, String exceptionStr) {
         String errMsg = new StringBuilder("HttpRequest:").append(httpRequest.toString())
-                                                         .append("\nException:")
-                                                         .append(exceptionStr)
-                                                         .toString();
+                .append("\nException:").append(exceptionStr).toString();
         LOG.warn(errMsg);
         return errMsg;
     }
@@ -88,12 +86,12 @@ public class DefaultCosHttpClient extends AbstractCosHttpClient {
                 httpResponse = httpClient.execute(httpGet);
                 int http_statuscode = httpResponse.getStatusLine().getStatusCode();
                 // retry 5xx, except for 500
-                // 500是签名服务失败时,返回的http状态码
-                if (http_statuscode > 500 && http_statuscode <= 599 ) {
-                    String errMsg = String.format("http status code is %d", http_statuscode);
+                if (http_statuscode >= 500 && http_statuscode <= 599) {
+                    String errMsg = String.format("http status code is %d, response body: %s",
+                            http_statuscode, getResponseString(httpResponse));
                     throw new IOException(errMsg);
                 }
-                
+
                 responseStr = EntityUtils.toString(httpResponse.getEntity(), "UTF-8");
                 new JSONObject(responseStr);
                 return responseStr;
@@ -105,11 +103,9 @@ public class DefaultCosHttpClient extends AbstractCosHttpClient {
                     throw new ServerException(errMsg);
                 }
             } catch (JSONException e) {
-                String errMsg =
-                        String.format("server response is not json, httpRequest: %s, httpResponse: %s, responseStr:%s",
-                                      httpRequest.toString(),
-                                      httpResponse.toString(),
-                                      responseStr);
+                String errMsg = String.format(
+                        "server response is not json, httpRequest: %s, httpResponse: %s, responseStr:%s",
+                        httpRequest.toString(), httpResponse.toString(), responseStr);
                 LOG.warn(errMsg);
                 throw new ServerException(errMsg);
             } finally {
@@ -147,9 +143,9 @@ public class DefaultCosHttpClient extends AbstractCosHttpClient {
                 httpResponse = httpClient.execute(httpPost);
                 int http_statuscode = httpResponse.getStatusLine().getStatusCode();
                 // retry 5xx, except for 500
-                // 500是签名服务失败时,返回的http状态码
-                if (http_statuscode > 500 && http_statuscode <= 599 ) {
-                    String errMsg = String.format("http status code is %d", http_statuscode);
+                if (http_statuscode >= 500 && http_statuscode <= 599) {
+                    String errMsg = String.format("http status code is %d, response body: %s",
+                            http_statuscode, getResponseString(httpResponse));
                     throw new IOException(errMsg);
                 }
                 responseStr = EntityUtils.toString(httpResponse.getEntity(), "UTF-8");
@@ -163,11 +159,9 @@ public class DefaultCosHttpClient extends AbstractCosHttpClient {
                     throw new ServerException(errMsg);
                 }
             } catch (JSONException e) {
-                String errMsg =
-                        String.format("server response is not json, httpRequest: %s, httpResponse: %s, responseStr:%s",
-                                      httpRequest.toString(),
-                                      httpResponse.toString(),
-                                      responseStr);
+                String errMsg = String.format(
+                        "server response is not json, httpRequest: %s, httpResponse: %s, responseStr:%s",
+                        httpRequest.toString(), httpResponse.toString(), responseStr);
                 LOG.warn(errMsg);
                 throw new ServerException(errMsg);
             } finally {
@@ -201,19 +195,17 @@ public class DefaultCosHttpClient extends AbstractCosHttpClient {
                 HttpResponse httpResponse = httpClient.execute(httpGet);
                 int http_statuscode = httpResponse.getStatusLine().getStatusCode();
                 // retry 5xx, except for 500
-                // 500是签名服务失败时,返回的http状态码
-                if (http_statuscode > 500 && http_statuscode <= 599 ) {
-                    String errMsg = String.format("http status code is %d", http_statuscode);
+                if (http_statuscode >= 500 && http_statuscode <= 599) {
+                    String errMsg = String.format("http status code is %d, response body: %s",
+                            http_statuscode, getResponseString(httpResponse));
                     throw new IOException(errMsg);
                 }
 
                 if (http_statuscode != 200 && http_statuscode != 206) {
                     String responseStr = EntityUtils.toString(httpResponse.getEntity(), "UTF-8");
-                    String errMsg =
-                            String.format("getFileinputstream failed, httpRequest: %s, httpResponse: %s, responseStr: %s",
-                                          httpRequest.toString(),
-                                          httpResponse.toString(),
-                                          responseStr);
+                    String errMsg = String.format(
+                            "getFileinputstream failed, httpRequest: %s, httpResponse: %s, responseStr: %s",
+                            httpRequest.toString(), httpResponse.toString(), responseStr);
                     httpGet.releaseConnection();
                     throw new ServerException(errMsg);
                 }
@@ -233,6 +225,20 @@ public class DefaultCosHttpClient extends AbstractCosHttpClient {
         }
         // never will reach here
         return null;
+    }
+
+    private String getResponseString(HttpResponse httpResponse) throws ParseException, IOException {
+        String httpResponseStr = null;
+        HttpEntity httpEntity = httpResponse.getEntity();
+        if (httpEntity != null) {
+            httpResponseStr = EntityUtils.toString(httpEntity, "UTF-8");
+        }
+
+        if (httpResponseStr == null) {
+            return "";
+        } else {
+            return httpResponseStr;
+        }
     }
 
     private void setJsonEntity(HttpPost httpPost, Map<String, String> params) {

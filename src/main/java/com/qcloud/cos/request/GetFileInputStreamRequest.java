@@ -16,31 +16,31 @@ public class GetFileInputStreamRequest extends AbstractBaseRequest {
     // 下载文件的range的结束位置
     private long rangeEnd = Long.MAX_VALUE;
 
-	public GetFileInputStreamRequest(String bucketName, String cosPath) {
-		super(bucketName, cosPath);
-	}
+    public GetFileInputStreamRequest(String bucketName, String cosPath) {
+        super(bucketName, cosPath);
+    }
 
-	@Override
-	public void check_param() throws ParamException {
-		super.check_param();
-		CommonParamCheckUtils.AssertLegalCosFilePath(this.getCosPath());
-	}
+    @Override
+    public void check_param() throws ParamException {
+        super.check_param();
+        CommonParamCheckUtils.AssertLegalCosFilePath(this.getCosPath());
+    }
 
-	public long getRangeStart() {
-		return rangeStart;
-	}
+    public long getRangeStart() {
+        return rangeStart;
+    }
 
-	public void setRangeStart(long rangeStart) {
-		this.rangeStart = rangeStart;
-	}
+    public void setRangeStart(long rangeStart) {
+        this.rangeStart = rangeStart;
+    }
 
-	public long getRangeEnd() {
-		return rangeEnd;
-	}
+    public long getRangeEnd() {
+        return rangeEnd;
+    }
 
-	public void setRangeEnd(long rangeEnd) {
-		this.rangeEnd = rangeEnd;
-	}
+    public void setRangeEnd(long rangeEnd) {
+        this.rangeEnd = rangeEnd;
+    }
 
     public String getReferer() {
         return referer;
@@ -50,8 +50,4 @@ public class GetFileInputStreamRequest extends AbstractBaseRequest {
         this.referer = referer;
     }
 
-    @Override
-    public String toString() {
-        return super.toString();
-    }
 }

@@ -4,13 +4,13 @@ public class ClientConfig {
     // cos server的上传域名前缀, 用来表明使用的协议
     private static final String UPLOAD_COS_ENDPOINT_PREFIX = "http://";
     // cos server的上传域名地址
-    private static final String UPLOAD_COS_ENDPOINT_DOMAIN = "gz.file.myqcloud.com";
+    private static final String UPLOAD_COS_ENDPOINT_DOMAIN = "sh.file.myqcloud.com";
     // cos server的上传域名的后缀
     private static final String UPLOAD_COS_ENDPOINT_SUFFIX = "/files/v2";
     // cos server的下载域名的前缀
     private static final String DOWN_COS_ENDPOINT_PREFIX = "http://";
     // cos server的下载域名地址
-    private static final String DOWN_COS_ENDPOINT_DOMAIN = "cosgz.myqcloud.com";
+    private static final String DOWN_COS_ENDPOINT_DOMAIN = "cossh.myqcloud.com";
     // 多次签名的默认过期时间,单位秒
     private static final int DEFAULT_SIGN_EXPIRED = 300;
     // 默认的最大重试次数(发生了socketException时)

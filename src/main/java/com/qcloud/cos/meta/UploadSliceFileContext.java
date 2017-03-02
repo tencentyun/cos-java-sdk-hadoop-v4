@@ -1,5 +1,16 @@
 package com.qcloud.cos.meta;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import com.qcloud.cos.common_utils.CommonFileUtils;
+import com.qcloud.cos.exception.AbstractCosException;
+import com.qcloud.cos.exception.UnknownException;
+import com.qcloud.cos.http.ResponseBodyKey;
 import com.qcloud.cos.request.UploadSliceFileRequest;
 
 /**
@@ -9,40 +20,44 @@ import com.qcloud.cos.request.UploadSliceFileRequest;
  *
  */
 public class UploadSliceFileContext {
-	// bucket名
-	private String bucketName = "";
-	// cos路径
-	private String cosPath = "";
-	// 本地文件路径
-	private String localPath = "";
-	// 文件bizAttr
-	private String bizAttr = "";
-	// 是否覆盖
-	private InsertOnly insertOnly = InsertOnly.NO_OVER_WRITE;
-	private int sliceSize;
-	// 文件大小
-	private long fileSize = 0;
+    // bucket名
+    private String bucketName = "";
+    // cos路径
+    private String cosPath = "";
+    // 本地文件路径
+    private String localPath = "";
+    // 文件bizAttr
+    private String bizAttr = "";
+    // 是否覆盖
+    private InsertOnly insertOnly = InsertOnly.NO_OVER_WRITE;
+    // 分片大小
+    private int sliceSize;
+    // 文件大小
+    private long fileSize = 0;
 
-	private String url = "";
-	// 开启sha摘要
-	private boolean enableShaDigest = true;
-	// 开启断点请求，默认开启
-	private boolean enableSavePoint = true;
-	// 存储的端点文件路径
-	private String savePointFile = null;
-	// 任务数量
-	private int taskNum = 1;
-	// session
-	private String sessionId = "";
-	// 全文sha
-	private String entireFileSha = "";
+    private String url = "";
+    // 开启sha摘要
+    private boolean enableShaDigest = true;
+    // 任务数量
+    private int taskNum = 1;
+    // session
+    private String sessionId = "";
+    // 全文sha
+    private String entireFileSha = "";
 
-	private boolean serialUpload = true;
+    private boolean serialUpload = true;
 
+    // 标识是否是从内存中上传文件
     private boolean uploadFromBuffer = false;
+    // 上传的buffer
     private byte[] contentBuffer = null;
 
-    public UploadSliceFileContext(UploadSliceFileRequest request) {
+    // 标识要全部的slice part，包含已经上传和为上传的，已经上传的slice part的完成属性会设置为true
+    public ArrayList<SlicePart> sliceParts;
+    // 标识已经上传的slice parts
+    private Set<Long> uploadCompletePartsSet;
+
+    public UploadSliceFileContext(UploadSliceFileRequest request) throws AbstractCosException {
         this.bucketName = request.getBucketName();
         this.cosPath = request.getCosPath();
         this.uploadFromBuffer = request.isUploadFromBuffer();
@@ -54,130 +69,156 @@ public class UploadSliceFileContext {
         this.insertOnly = request.getInsertOnly();
         this.sliceSize = request.getSliceSize();
         this.taskNum = request.getTaskNum();
-        this.enableSavePoint = request.isEnableSavePoint();
         this.enableShaDigest = request.isEnableShaDigest();
-        this.savePointFile = this.localPath + ".scp";
+        this.sliceParts = new ArrayList<SlicePart>();
+        this.uploadCompletePartsSet = new HashSet<>();
+        caculateFileSize();
     }
 
-	public String getBucketName() {
-		return bucketName;
-	}
+    private void caculateFileSize() throws UnknownException {
+        try {
+            if (this.uploadFromBuffer) {
+                this.fileSize = this.contentBuffer.length;
+            } else {
+                this.fileSize = CommonFileUtils.getFileLength(this.localPath);
+            }
+        } catch (Exception e) {
+            throw new UnknownException("caculateFileSize error. " + e.toString());
+        }
+    }
 
-	public void setBucketName(String bucketName) {
-		this.bucketName = bucketName;
-	}
+    // 切分文件
+    public ArrayList<SlicePart> prepareUploadPartsInfo() {
+        int sliceCount = new Long((fileSize + (sliceSize - 1)) / sliceSize).intValue();
+        for (int sliceIndex = 0; sliceIndex < sliceCount; ++sliceIndex) {
+            SlicePart part = new SlicePart();
+            long offset = (Long.valueOf(sliceIndex).longValue()) * sliceSize;
+            part.setOffset(offset);
+            if (sliceIndex != sliceCount - 1) {
+                part.setSliceSize(sliceSize);
+            } else {
+                part.setSliceSize(new Long(fileSize - offset).intValue());
+            }
+            part.setUploadCompleted(uploadCompletePartsSet.contains(offset));
+            sliceParts.add(part);
+        }
+        return sliceParts;
+    }
 
-	public String getCosPath() {
-		return cosPath;
-	}
 
-	public void setCosPath(String cosPath) {
-		this.cosPath = cosPath;
-	}
+    public void setUploadCompleteParts(JSONArray listPartsArry) {
+        int listPartsLen = listPartsArry.length();
+        for (int listPartsIndex = 0; listPartsIndex < listPartsLen; ++listPartsIndex) {
+            JSONObject listPartMember = listPartsArry.getJSONObject(listPartsIndex);
+            long partOffset = listPartMember.getLong(ResponseBodyKey.Data.OFFSET);
+            this.uploadCompletePartsSet.add(partOffset);
+        }
+    }
 
-	public String getLocalPath() {
-		return localPath;
-	}
 
-	public void setLocalPath(String localPath) {
-		this.localPath = localPath;
-	}
+    public String getBucketName() {
+        return bucketName;
+    }
 
-	public String getBizAttr() {
-		return bizAttr;
-	}
+    public void setBucketName(String bucketName) {
+        this.bucketName = bucketName;
+    }
 
-	public void setBizAttr(String bizAttr) {
-		this.bizAttr = bizAttr;
-	}
+    public String getCosPath() {
+        return cosPath;
+    }
 
-	public InsertOnly getInsertOnly() {
-		return insertOnly;
-	}
+    public void setCosPath(String cosPath) {
+        this.cosPath = cosPath;
+    }
 
-	public void setInsertOnly(InsertOnly insertOnly) {
-		this.insertOnly = insertOnly;
-	}
+    public String getLocalPath() {
+        return localPath;
+    }
 
-	public int getSliceSize() {
-		return sliceSize;
-	}
+    public void setLocalPath(String localPath) {
+        this.localPath = localPath;
+    }
 
-	public void setSliceSize(int sliceSize) {
-		this.sliceSize = sliceSize;
-	}
+    public String getBizAttr() {
+        return bizAttr;
+    }
 
-	public long getFileSize() {
-		return fileSize;
-	}
+    public void setBizAttr(String bizAttr) {
+        this.bizAttr = bizAttr;
+    }
 
-	public void setFileSize(long fileSize) {
-		this.fileSize = fileSize;
-	}
+    public InsertOnly getInsertOnly() {
+        return insertOnly;
+    }
 
-	public String getUrl() {
-		return url;
-	}
+    public void setInsertOnly(InsertOnly insertOnly) {
+        this.insertOnly = insertOnly;
+    }
 
-	public void setUrl(String url) {
-		this.url = url;
-	}
+    public int getSliceSize() {
+        return sliceSize;
+    }
 
-	public boolean isEnableShaDigest() {
-		return enableShaDigest;
-	}
+    public void setSliceSize(int sliceSize) {
+        this.sliceSize = sliceSize;
+    }
 
-	public void setEnableShaDigest(boolean enableShaDigest) {
-		this.enableShaDigest = enableShaDigest;
-	}
+    public long getFileSize() {
+        return fileSize;
+    }
 
-	public boolean isEnableSavePoint() {
-		return enableSavePoint;
-	}
+    public void setFileSize(long fileSize) {
+        this.fileSize = fileSize;
+    }
 
-	public void setEnableSavePoint(boolean enableSavePoint) {
-		this.enableSavePoint = enableSavePoint;
-	}
+    public String getUrl() {
+        return url;
+    }
 
-	public String getSavePointFile() {
-		return savePointFile;
-	}
+    public void setUrl(String url) {
+        this.url = url;
+    }
 
-	public void setSavePointFile(String savePointFile) {
-		this.savePointFile = savePointFile;
-	}
+    public boolean isEnableShaDigest() {
+        return enableShaDigest;
+    }
 
-	public int getTaskNum() {
-		return taskNum;
-	}
+    public void setEnableShaDigest(boolean enableShaDigest) {
+        this.enableShaDigest = enableShaDigest;
+    }
 
-	public void setTaskNum(int taskNum) {
-		this.taskNum = taskNum;
-	}
+    public int getTaskNum() {
+        return taskNum;
+    }
 
-	public String getSessionId() {
-		return sessionId;
-	}
+    public void setTaskNum(int taskNum) {
+        this.taskNum = taskNum;
+    }
 
-	public void setSessionId(String sessionId) {
-		this.sessionId = sessionId;
-	}
+    public String getSessionId() {
+        return sessionId;
+    }
 
-	public String getEntireFileSha() {
-		return entireFileSha;
-	}
+    public void setSessionId(String sessionId) {
+        this.sessionId = sessionId;
+    }
 
-	public void setEntireFileSha(String entireFileSha) {
-		this.entireFileSha = entireFileSha;
-	}
+    public String getEntireFileSha() {
+        return entireFileSha;
+    }
 
-	public boolean isSerialUpload() {
-		return serialUpload;
-	}
+    public void setEntireFileSha(String entireFileSha) {
+        this.entireFileSha = entireFileSha;
+    }
 
-	public void setSerialUpload(boolean serialUpload) {
-		this.serialUpload = serialUpload;
-	}
+    public boolean isSerialUpload() {
+        return serialUpload;
+    }
+
+    public void setSerialUpload(boolean serialUpload) {
+        this.serialUpload = serialUpload;
+    }
 
     public boolean isUploadFromBuffer() {
         return uploadFromBuffer;

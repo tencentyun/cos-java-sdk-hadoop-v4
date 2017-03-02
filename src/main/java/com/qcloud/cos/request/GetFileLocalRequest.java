@@ -23,15 +23,12 @@ public class GetFileLocalRequest extends GetFileInputStreamRequest {
 	public void setLocalPath(String localPath) {
 		this.localPath = localPath;
 	}
-
-	@Override
+	
+	
+    @Override
 	public void check_param() throws ParamException {
 		super.check_param();
 		CommonParamCheckUtils.AssertLegalCosFilePath(this.getCosPath());
 	}
 
-	@Override
-	public String toString() {
-		return super.toString();
-	}
 }

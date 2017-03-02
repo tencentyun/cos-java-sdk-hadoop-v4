@@ -16,17 +16,24 @@ import com.qcloud.cos.exception.ParamException;
 public abstract class AbstractCosHttpClient {
     protected ClientConfig config;
     protected HttpClient httpClient;
-    
+
+    protected PoolingClientConnectionManager conMan;
+    protected IdleConnectionMonitorThread idleConnectionMonitor;
+
     public AbstractCosHttpClient(ClientConfig config) {
         super();
         this.config = config;
-        PoolingClientConnectionManager conMan = new PoolingClientConnectionManager( SchemeRegistryFactory.createDefault() );
+        this.conMan = new PoolingClientConnectionManager(SchemeRegistryFactory.createDefault());
         conMan.setMaxTotal(config.getMaxConnectionsCount());
         conMan.setDefaultMaxPerRoute(config.getMaxConnectionsCount());
         this.httpClient = new DefaultHttpClient(conMan);
         HttpParams httpParams = this.httpClient.getParams();
         HttpConnectionParams.setConnectionTimeout(httpParams, config.getConnectionTimeout());
         HttpConnectionParams.setSoTimeout(httpParams, config.getSocketTimeout());
+
+        this.idleConnectionMonitor = new IdleConnectionMonitorThread(conMan);
+        this.idleConnectionMonitor.setDaemon(true);
+        this.idleConnectionMonitor.start();
     }
 
     protected abstract String sendPostRequest(HttpRequest httpRequest) throws AbstractCosException;
@@ -44,9 +51,11 @@ public abstract class AbstractCosHttpClient {
             throw new ParamException("Unsupported Http Method");
         }
     }
-    
-    public abstract InputStream getFileInputStream(HttpRequest httpRequest) throws AbstractCosException;
-    
+
+    public abstract InputStream getFileInputStream(HttpRequest httpRequest)
+            throws AbstractCosException;
+
     public void shutdown() {
+        this.idleConnectionMonitor.shutdown();
     }
 }
