@@ -254,8 +254,26 @@ public class FileOp extends BaseOp {
 
 		httpRequest.setMethod(HttpMethod.POST);
 		httpRequest.setContentType(HttpContentType.MULTIPART_FORM_DATA);
-
-		return httpClient.sendHttpRequest(httpRequest);
+		
+		String retStr = httpClient.sendHttpRequest(httpRequest);                                    
+        if (request.getInsertOnly() != InsertOnly.OVER_WRITE) {                                     
+            return retStr;                                                                          
+        }                                                                                           
+        // 对于Overwrite类型，覆盖上传失败，做特殊处理，删掉重新传                                  
+        JSONObject retJson = new JSONObject(retStr);                                                
+        if (retJson.getInt("code") == 0) {                                                          
+            return retStr;                                                                          
+        }                                                                                           
+        // 1. Delete                                                                                
+        DelFileRequest del_request =                                                                
+                new DelFileRequest(request.getBucketName(), request.getCosPath());                  
+        String delRet = delFile(del_request);                                                       
+        JSONObject delJson = new JSONObject(delRet);                                                
+        if (delJson.getInt("code") != 0) {                                                          
+            return retStr;                                                                          
+        }                                                                                           
+        // 2. Upload Again                                                                          
+        return httpClient.sendHttpRequest(httpRequest);
 	}
 
 	/**
@@ -270,7 +288,28 @@ public class FileOp extends BaseOp {
 		request.check_param();
 		UploadSliceFileContext context = new UploadSliceFileContext(request);
 		context.setUrl(buildUrl(request));
-		return uploadFileWithCheckPoint(context);
+		String retStr = uploadFileWithCheckPoint(context);
+		// 对于Overwrite类型，覆盖上传失败，做特殊处理，删掉重新传
+		JSONObject retJson = new JSONObject(retStr);                                                
+        if (retJson.getInt("code") == 0) {                                                          
+            return retStr;                                                                          
+        }                                                                                           
+        // 1. Delete                                                                                
+        DelFileRequest del_request =                                                                
+                new DelFileRequest(request.getBucketName(), request.getCosPath());                  
+        String delRet = delFile(del_request);                                                       
+        JSONObject delJson = new JSONObject(delRet);                                                
+        if (delJson.getInt("code") != 0) {                                                          
+            return retStr;                                                                          
+        }                                                                                           
+        // 2. Upload Again                                                                          
+        retStr = uploadFileWithCheckPoint(context);                                                 
+        retJson = new JSONObject(retStr);                                                           
+        if (retJson.getInt("code") != 0) {                                                          
+            del_request = new DelFileRequest(request.getBucketName(), request.getCosPath());        
+            delFile(del_request);                                                                   
+        }                                                                                           
+        return retStr;
 	}
 
     /**
