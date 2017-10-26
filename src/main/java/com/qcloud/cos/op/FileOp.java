@@ -689,6 +689,26 @@ public class FileOp extends BaseOp {
 	}
 
 	public String copyFile(CopyFileRequest request) throws AbstractCosException {
+        request.check_param();
+
+        String url = buildUrl(request);
+        String sign = Sign.getOneEffectiveSign(request.getBucketName(), request.getCosPath(), this.cred);
+
+        HttpRequest httpRequest = new HttpRequest();
+        httpRequest.setUrl(url);
+        httpRequest.addHeader(RequestHeaderKey.Authorization, sign);
+        httpRequest.addHeader(RequestHeaderKey.Content_TYPE, RequestHeaderValue.ContentType.JSON);
+        httpRequest.addHeader(RequestHeaderKey.USER_AGENT, this.config.getUserAgent());
+        httpRequest.addParam(RequestBodyKey.OP, RequestBodyValue.OP.COPY);
+        httpRequest.addParam(RequestBodyKey.DEST_FIELD, request.getDstCosPath());
+        httpRequest.addParam(RequestBodyKey.TO_OVER_WRITE, String.valueOf(request.getInsertOnly().ordinal()));
+        httpRequest.setMethod(HttpMethod.POST);
+        httpRequest.setContentType(HttpContentType.APPLICATION_JSON);
+        return httpClient.sendHttpRequest(httpRequest);
+		
+		
+
+		/*
 		String bucketName = request.getBucketName();
 		String srcCosPath = request.getCosPath();
 		StatFileRequest statFileRequest = new StatFileRequest(bucketName, srcCosPath);
@@ -706,5 +726,6 @@ public class FileOp extends BaseOp {
 		} else {
 			return copySmallFile(request);
 		}
+		*/
 	}
 }

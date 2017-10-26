@@ -10,6 +10,7 @@ public class RequestBodyValue {
         public static final String UPDATE = "update";
         public static final String STAT = "stat";
         public static final String MOVE = "move";
+        public static final String COPY = "copy";
         public static final String DELETE = "delete";
         public static final String UPLOAD = "upload";
         public static final String UPLOAD_SLICE_INIT = "upload_slice_init";
